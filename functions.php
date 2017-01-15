@@ -72,27 +72,12 @@ function get_args() : Array
 }
 
 /**
- * Builds the HTML document and returns it as string
- * @param  String $title The value for `<title>`
- * @return String        <!DOCTYPE html><html>...
+ * Appends calendar tables to a parent element
+ * @param  DOMElement $parent Element to append calendar tables to
+ * @return void
  */
-function get_page(String $title) : String
+function make_calendars(\DOMElement $parent)
 {
-	// Build the HTML document
-	$dom = new \DOMDocument(Consts\CHARSET);
-	$dom->loadHTML('<!DOCTYPE html>');
-	$html = $dom->appendChild($dom->createElement('html'));
-
-	add_element($html, 'head', null, [], [
-		['title', $title],
-		['meta', null, ['charset' => Consts\CHARSET]],
-	]);
-	$body = add_element($html, 'body');
-
-	// Clean-up vars
-	unset($html);
-
-	// Get arguments from request or their default values
 	list($count, $date) = get_args();
 
 	// Create a Month object and set its output format
@@ -100,50 +85,89 @@ function get_page(String $title) : String
 	$month->format = Consts\FORMAT;
 
 	// Create $count calendar months / `<table>`s
-	$n = 0;
-	while($n++ < $count) {
-		$month->addCalendarToDOMEl($body);
+	for ($i=0; $i <  $count; $i++) {
+		$month->addCalendarToDOMEl($parent);
 	}
+}
 
-	// Clean-up vars
-	unset($month, $n, $count, $date);
+/**
+ * Builds the DOMDocument and returns it
+ * @param  String $title The value for `<title>`
+ * @return DOMDocument   <!DOCTYPE html><html>...
+ */
+function get_page_dom(String $title) : \DOMDocument
+{
+	// Build the HTML document
+	$dom = new \DOMDocument(Consts\CHARSET);
+	$dom->loadHTML('<!DOCTYPE html><html></html>');
 
-	// Append the `<form>` to $body
-	add_element($body, 'form', null, ['action' => '/'], [
-		// Pass form inputs as an array / $children argument
+	// Create `<head>` and append title & charset
+	add_element($dom->documentElement, 'head', null, [], [
+		['title', $title],
+		['meta', null, ['charset' => Consts\CHARSET]],
+	]);
+
+	// Create `<body>` and append form & container for calendars
+	add_element($dom->documentElement, 'body', null, [], [
 		[
-			// Create input for month
-			'input',
-			null, [
-				'name' => Consts\MONTH_KEY,
-				'type' => 'month',
-				'pattern' => '\d{4}-\d{2}',
-				'placeholder' => 'YYYY-mm',
-				'required' => '',
-			]
-		], [
-			'br'
-		], [
-			// Create input for count
-			'input',
-			null, [
-				'name' => Consts\COUNT_KEY,
-				'type' => 'range',
-				'min' => '1',
-				'max' => '12',
-			]
-		], [
-			'br'
-		], [
-			// Create submit button
-			'button',
-			'Submit',
+			'form',
+			null,
+			['action' => '/'], [
+			// Pass form inputs as an array / $children argument
 			[
-				'type' => 'submit',
+				// Create input for month
+				'input',
+				null, [
+					'name' => Consts\MONTH_KEY,
+					'type' => 'month',
+					'pattern' => '\d{4}-\d{2}',
+					'placeholder' => 'YYYY-mm',
+					'required' => '',
+				]
+			], [
+				'br'
+			], [
+				// Create input for count
+				'input',
+				null, [
+					'name' => Consts\COUNT_KEY,
+					'type' => 'range',
+					'min' => '1',
+					'max' => '12',
+				]
+			], [
+				'br'
+			], [
+				// Create submit button
+				'button',
+				'Submit',
+				[
+					'type' => 'submit',
+				],
 			],
+		]], [
+			// This is the container for calendars
+			'div', null, ['id' => 'calendars']
 		],
 	]);
 
-	// Return the HTML document as HTML string
+	// Return the DOMDocument
+	return $dom;
+}
+
+/**
+ * Builds the HTML document and returns it as string
+ * @param  String $title The value for `<title>`
+ * @return String        <!DOCTYPE html><html>...
+ */
+function get_page(String $title) : String
+{
+	// Build the DOMDocument
+	$dom = get_page_dom($title);
+
+	// Append calendats to calendars container
+	make_calendars($dom->getElementById('calendars'));
+
+	// Return the DOMDocument as an HTML string
 	return $dom->saveHTML();
 }
