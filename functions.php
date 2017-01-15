@@ -1,0 +1,149 @@
+<?php
+
+namespace shgysk8zer0\Calendar\Functions;
+
+use \shgysk8zer0\Calendar\Consts as Consts;
+use \shgysk8zer0\Calendar\Month as Month;
+
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'consts.php';
+
+/**
+ * Appends an element to $parent with optional text content and attributes
+ * @param DOMElement $parent    Element to append to
+ * @param String     $tagname   Tagname of element to append
+ * @param String     $content   Optional text content
+ * @param array      $attrs     Optional array of attributes to set on new element
+ * @param array      $children  Optional array of arguments for children to create
+ */
+function add_element(
+	\DOMElement $parent,
+	String $tagname,
+	String $content  = null,
+	Array $attrs     = array(),
+	Array $children  = array()
+) : \DOMElement
+{
+	// Create the new element and append it to parent
+	$el = new \DOMElement($tagname, $content);
+	$parent->appendChild($el);
+
+	// Set attributes on `$el` from the array of attributes
+	array_map([$el, 'setAttribute'], array_keys($attrs), array_values($attrs));
+
+	// Recursively call function with arguments from `$children`
+	foreach ($children as $child) {
+		// Child should be in the format:
+		// String $tagname, [String $content, [Array $attrs, [Array $children]]]
+		// `$el` is to be the $parent
+		call_user_func(__FUNCTION__, $el, ...$child);
+	}
+
+	return $el;
+}
+
+/**
+ * Gets arguments from `$_REQUEST`
+ * @param void
+ * @return Array [$count, $date]
+ */
+function get_args() : Array
+{
+	// Check for $count in `$_REQUEST` and verify that 1 >= $count <= 12
+	if (array_key_exists(Consts\COUNT_KEY, $_REQUEST)) {
+		$count = @intval($_REQUEST[Consts\COUNT_KEY]);
+		if ($count < 1 or $count > 12) {
+			$count = Consts\DEFAULTS['count'];
+		}
+	} else {
+		$count = Consts\DEFAULTS['count'];
+	}
+
+	// Get $date ('Y-m') from `$_REQUEST` or set it to its default value
+	if (
+		array_key_exists(Consts\MONTH_KEY, $_REQUEST)
+		and preg_match('/^\d{4}-\d{2}$/', $_REQUEST[Consts\MONTH_KEY])
+	) {
+		$date = $_REQUEST[Consts\MONTH_KEY];
+	} else {
+		$date = Consts\DEFAULTS['month'];
+	}
+
+	return [$count, $date];
+}
+
+/**
+ * Builds the HTML document and returns it as string
+ * @param  String $title The value for `<title>`
+ * @return String        <!DOCTYPE html><html>...
+ */
+function get_page(String $title) : String
+{
+	// Build the HTML document
+	$dom = new \DOMDocument(Consts\CHARSET);
+	$dom->loadHTML('<!DOCTYPE html>');
+	$html = $dom->appendChild($dom->createElement('html'));
+
+	add_element($html, 'head', null, [], [
+		['title', $title],
+		['meta', null, ['charset' => Consts\CHARSET]],
+	]);
+	$body = add_element($html, 'body');
+
+	// Clean-up vars
+	unset($html);
+
+	// Get arguments from request or their default values
+	list($count, $date) = get_args();
+
+	// Create a Month object and set its output format
+	$month = new Month($date, new \DateTimeZone(Consts\TIMEZONE));
+	$month->format = Consts\FORMAT;
+
+	// Create $count calendar months / `<table>`s
+	$n = 0;
+	while($n++ < $count) {
+		$month->addCalendarToDOMEl($body);
+	}
+
+	// Clean-up vars
+	unset($month, $n, $count, $date);
+
+	// Append the `<form>` to $body
+	add_element($body, 'form', null, ['action' => '/'], [
+		// Pass form inputs as an array / $children argument
+		[
+			// Create input for month
+			'input',
+			null, [
+				'name' => Consts\MONTH_KEY,
+				'type' => 'month',
+				'pattern' => '\d{4}-\d{2}',
+				'placeholder' => 'YYYY-mm',
+				'required' => '',
+			]
+		], [
+			'br'
+		], [
+			// Create input for count
+			'input',
+			null, [
+				'name' => Consts\COUNT_KEY,
+				'type' => 'range',
+				'min' => '1',
+				'max' => '12',
+			]
+		], [
+			'br'
+		], [
+			// Create submit button
+			'button',
+			'Submit',
+			[
+				'type' => 'submit',
+			],
+		],
+	]);
+
+	// Return the HTML document as HTML string
+	return $dom->saveHTML();
+}
