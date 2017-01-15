@@ -21,11 +21,7 @@ trait Iterator
 	// Does not handle end of month.
 	final public function valid()
 	{
-		$more = $this->_day_counter++ <= $this->_max_days;
-		if (!$more) {
-			$this->modify('-1 day');
-		}
-		return $more;
+		return $this->_day_counter++ <= $this->_max_days;
 	}
 
 	final public function rewind()
