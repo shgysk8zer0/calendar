@@ -70,6 +70,7 @@ trait Magic
 			'timestamp'            => $this->getTimestamp(),
 			'isDaylightSavingTime' => $this->format('I') === '1',
 			'isLeapYear'           => $this->format('L') === '1',
+			'W3CFormat'            => $this->format(\DateTime::W3C),
 		];
 	}
 }
