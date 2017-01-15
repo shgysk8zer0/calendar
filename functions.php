@@ -112,40 +112,59 @@ function get_page_dom(String $title) : \DOMDocument
 		[
 			'form',
 			null,
-			['action' => '/'], [
-			// Pass form inputs as an array / $children argument
 			[
-				// Create input for month
-				'input',
-				null, [
-					'name' => Consts\MONTH_KEY,
-					'type' => 'month',
-					'pattern' => '\d{4}-\d{2}',
-					'placeholder' => 'YYYY-mm',
-					'required' => '',
-				]
+				'action' => '/',
 			], [
-				'br'
-			], [
-				// Create input for count
-				'input',
-				null, [
-					'name' => Consts\COUNT_KEY,
-					'type' => 'range',
-					'min' => '1',
-					'max' => '12',
-				]
-			], [
-				'br'
-			], [
-				// Create submit button
-				'button',
-				'Submit',
 				[
-					'type' => 'submit',
+					'label',
+					'Month',
+					[
+						'for' => 'month',
+					]
+				], [
+					// Create input for month
+					'input',
+					null,
+					[
+						'name'        => Consts\MONTH_KEY,
+						'type'        => 'month',
+						'id'          => 'month',
+						'pattern'     => '\d{4}-\d{2}',
+						'placeholder' => 'YYYY-mm',
+						'required'    => '',
+					]
+				], [
+					'br'
 				],
-			],
-		]], [
+				[
+					'label',
+					'Count',
+					[
+						'for' => 'count',
+					]
+				], [
+					// Create input for count
+					'input',
+					null,
+					[
+						'name' => Consts\COUNT_KEY,
+						'id'   => 'count',
+						'type' => 'range',
+						'min'  => '1',
+						'max'  => '12',
+					]
+				], [
+					'br'
+				], [
+					// Create submit button
+					'button',
+					'Submit',
+					[
+						'type' => 'submit',
+					],
+				],
+			]
+		], [
 			// This is the container for calendars
 			'div', null, ['id' => 'calendars']
 		],
