@@ -1,10 +1,6 @@
 <?php
 
 namespace shgysk8zer0\Calendar;
-class Day extends \DateTime implements \JsonSerializable, \Serializable
+class Day extends Abstracts\Calendar
 {
-	use Traits\Magic;
-
-	public $format = 'Y-m-d';
 }
-

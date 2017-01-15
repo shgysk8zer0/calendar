@@ -1,12 +1,9 @@
 <?php
 
 namespace shgysk8zer0\Calendar;
-class Week extends \DateTime implements \Iterator, \JsonSerializable, \Countable, \Serializable
+class Week extends Abstracts\Calendar implements \Iterator, \Countable
 {
 	use Traits\Iterator;
-	use Traits\Magic;
-
-	public $format = 'Y-m-d';
 
 	public function count()
 	{
@@ -18,4 +15,3 @@ class Week extends \DateTime implements \Iterator, \JsonSerializable, \Countable
 		return intval($this->format('w'));
 	}
 }
-

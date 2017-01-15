@@ -1,12 +1,10 @@
 <?php
 
 namespace shgysk8zer0\Calendar;
-class Month extends \DateTime implements \Iterator, \JsonSerializable, \Countable, \Serializable
+class Month extends Abstracts\Calendar implements \Iterator, \Countable, Interfaces\Calendar
 {
 	use Traits\Iterator;
-	use Traits\Magic;
-
-	public $format = 'Y-m-d';
+	use Traits\Calendar;
 
 	public function count()
 	{
@@ -15,7 +13,6 @@ class Month extends \DateTime implements \Iterator, \JsonSerializable, \Countabl
 
 	final public function key()
 	{
-		return intval($this->format('j'));
+		return intval($this->format('j')) -1;
 	}
 }
-
